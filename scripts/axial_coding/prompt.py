@@ -142,6 +142,7 @@ Use this when:
    - What specific indicators led to this classification
    - What context the AI was missing (for themes 1-5)
    - Any uncertainty in the classification
+5. Identify any potential trends or patterns by comparing the alert details (tenant, verdict, comment) to common security operations scenarios.
 
 ## Output Format
 
@@ -152,7 +153,7 @@ Respond with valid JSON only:
   "confidence": "<HIGH|MEDIUM|LOW>",
   "reasoning": "<Your reasoning explaining why this feedback belongs to this theme>",
   "missing_context": "<What organizational/system context was the AI missing?>",
-  "trend_insight": "<Any recurring patterns or trend insights derived from this alert and its context (e.g., 'Increasing frequency of sysadmin-related false positives in this tenant')>"
+  "trend_insight": "<MANDATORY: Analyze if this alert indicates a broader trend or recurring pattern. Even for single alerts, hypothesize a potential trend based on the tenant, entities, or theme. (e.g., 'Recurring false positives for service accounts in SHRSS tenant during patch windows')>"
 }
 ```
 
@@ -165,7 +166,7 @@ Where THEME_NAME is one of:
 - OTHER
 """
 
-USER_PROMPT_TEMPLATE = """Classify the following security alert feedback into one of the predefined themes.
+USER_PROMPT_TEMPLATE = """Classify the following security alert feedback into one of the predefined themes and derive trend insights.
 
 ## Alert Context
 
@@ -185,7 +186,7 @@ USER_PROMPT_TEMPLATE = """Classify the following security alert feedback into on
 
 ---
 
-Based on the human comment and AI analysis, classify this feedback into one of the themes and explain your reasoning.
+Based on the human comment and AI analysis, classify this feedback into one of the themes, explain your reasoning, and provide a trend insight as defined in the system instructions.
 
 Respond with valid JSON only."""
 
@@ -238,8 +239,41 @@ def format_user_prompt(
         ai_verdict=ai_verdict,
         ai_justification=ai_justification,
         event_summary=event_summary,
+        trend_insight=trend_insight,
         investigative_gaps=investigative_gaps,
     )
+
+
+GLOBAL_TRENDS_PROMPT = """You are a senior security operations director. You have been provided with a collection of feedback items from security analysts regarding AI-generated alert verdicts.
+
+Your task is to analyze these individual insights and themes to identify the top 5 overarching security trends or systemic issues occurring across the organization.
+
+## Input Data
+You will receive a list of classified alerts, including their themes, human comments, and individual trend insights.
+
+## Analysis Requirements
+1.  **Identify Patterns**: Look for recurring software, user groups, or behaviors that are frequently misclassified.
+2.  **Tenant-Specific vs. Global**: Note if certain tenants are experiencing specific types of issues more than others.
+3.  **Root Cause Hypothesis**: For each trend, suggest why the AI might be struggling (e.g., "Lack of visibility into IT admin maintenance windows in the Europe region").
+4.  **Strategic Recommendations**: Provide actionable advice for improving the AI's accuracy based on these trends.
+
+## Output Format
+Respond with valid JSON only:
+```json
+{
+  "trends": [
+    {
+      "title": "<Short Trend Name>",
+      "description": "<Detailed explanation of the trend>",
+      "affected_tenants": ["<Tenant A>", "<Tenant B>"],
+      "severity": "<HIGH|MEDIUM|LOW>",
+      "recommendation": "<What should be done to fix this systemic issue?>"
+    }
+  ],
+  "summary": "<A 2-3 sentence executive summary of the overall state of the AI's performance>"
+}
+```
+"""
 
 
 # Example usage

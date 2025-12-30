@@ -21,6 +21,7 @@ from scripts.axial_coding.prompt import (
     SYSTEM_PROMPT,
     format_user_prompt,
     VALID_THEMES,
+    GLOBAL_TRENDS_PROMPT,
 )
 
 
@@ -187,8 +188,9 @@ class ThemeClassifier:
                             "confidence": types.Schema(type=types.Type.STRING),
                             "reasoning": types.Schema(type=types.Type.STRING),
                             "missing_context": types.Schema(type=types.Type.STRING),
+                            "trend_insight": types.Schema(type=types.Type.STRING),
                         },
-                        required=["theme", "confidence", "reasoning"],
+                        required=["theme", "confidence", "reasoning", "trend_insight"],
                     ),
                     response_mime_type="application/json",
                 ),
@@ -298,6 +300,66 @@ class ThemeClassifier:
         
         logger.info(f"Classification complete: {success_count}/{len(to_process)} successful")
         return success_count
+
+    def generate_global_trends(self, results_data: list) -> Dict[str, Any]:
+        """Analyze all classification results to extract global security trends."""
+        logger.info(f"Generating global trend analysis for {len(results_data)} alerts...")
+        
+        # Prepare data for the prompt (compact format to save tokens)
+        compact_data = []
+        for r in results_data:
+            compact_data.append({
+                "theme": r.get("theme"),
+                "insight": r.get("trend_insight"),
+                "tenant": r.get("tenant") or "Unknown"
+            })
+        
+        user_prompt = f"Analyze these {len(compact_data)} classification insights:\n\n{json.dumps(compact_data, indent=2)}"
+        
+        try:
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=GLOBAL_TRENDS_PROMPT,
+                    response_schema=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "trends": types.Schema(
+                                type=types.Type.ARRAY,
+                                items=types.Schema(
+                                    type=types.Type.OBJECT,
+                                    properties={
+                                        "title": types.Schema(type=types.Type.STRING),
+                                        "description": types.Schema(type=types.Type.STRING),
+                                        "affected_tenants": types.Schema(type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)),
+                                        "severity": types.Schema(type=types.Type.STRING),
+                                        "recommendation": types.Schema(type=types.Type.STRING),
+                                    },
+                                    required=["title", "description", "severity"]
+                                )
+                            ),
+                            "summary": types.Schema(type=types.Type.STRING),
+                        },
+                        required=["trends", "summary"],
+                    ),
+                    response_mime_type="application/json",
+                ),
+            )
+            
+            trends_result = json.loads(response.text)
+            
+            # Save to global_trends.json
+            global_trends_file = self.output_file.parent / "global_trends.json"
+            with open(global_trends_file, 'w') as f:
+                json.dump(trends_result, f, indent=2)
+            
+            logger.info(f"Global trends saved to {global_trends_file}")
+            return trends_result
+            
+        except Exception as e:
+            logger.error(f"Error generating global trends: {e}", exc_info=True)
+            return {"trends": [], "summary": "Error generating trends."}
     
     def _get_progress_bar(self, completed: int, total: int, bar_length: int = 30) -> str:
         """Generate a simple progress bar string."""
@@ -345,6 +407,11 @@ def main():
         default=5,
         help="Number of parallel worker threads (default: 5)",
     )
+    parser.add_argument(
+        "--global-trends",
+        action="store_true",
+        help="Generate global trend analysis after individual classification",
+    )
     
     args = parser.parse_args()
     
@@ -376,6 +443,24 @@ def main():
     )
     
     success_count = classifier.run(feedback_data, limit=args.limit, num_workers=args.workers)
+    
+    # Optional global trend analysis
+    if args.global_trends:
+        # Reload results to ensure we have all of them (including resume)
+        all_results = []
+        if Path(args.output).exists():
+            with open(args.output, 'r') as f:
+                for line in f:
+                    if line.strip():
+                        all_results.append(json.loads(line))
+        
+        # Add tenant info for analysis
+        tenant_map = {item['alert_id']: item.get('metadata', {}).get('account_short_name', 'Unknown') 
+                     for item in feedback_data}
+        for res in all_results:
+            res['tenant'] = tenant_map.get(res['alert_id'], 'Unknown')
+            
+        classifier.generate_global_trends(all_results)
     
     logger.info(f"Successfully classified {success_count} items")
     logger.info(f"Results saved to {args.output}")

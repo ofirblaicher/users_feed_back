@@ -69,6 +69,15 @@ if feedback_data:
         selected_theme = st.multiselect("Filter by Theme", options=df_results['theme'].unique())
         filtered_df = df_results if not selected_theme else df_results[df_results['theme'].isin(selected_theme)]
         
+        # Export Functionality
+        csv = filtered_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Export Filtered Results to CSV",
+            data=csv,
+            file_name=f"axial_coding_export_{len(filtered_df)}_items.csv",
+            mime="text/csv",
+        )
+        
         st.dataframe(filtered_df[['alert_id', 'theme', 'confidence', 'reasoning']], use_container_width=True)
         
         # Drill Down

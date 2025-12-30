@@ -122,8 +122,26 @@ if feedback_data:
             with det_col2:
                 st.success("**Human Input & Context**")
                 metadata = fb_item.get('metadata', {})
+                
+                # Extract AI Verdict (Initial) from traces
+                ai_verdict = "N/A"
+                if fb_item.get('traces'):
+                    for obs in fb_item['traces'][0].get('observations', []):
+                        if obs.get('type') == 'GENERATION' or (isinstance(obs.get('output'), str) and '"final_decision"' in obs.get('output')):
+                            try:
+                                output = obs.get('output', "")
+                                if isinstance(output, str) and output.strip().startswith('{'):
+                                    import json as json_lib
+                                    gen_data = json_lib.loads(output)
+                                    if "properties" in gen_data: gen_data = gen_data["properties"]
+                                    ai_verdict = gen_data.get("final_decision", "N/A")
+                                    break
+                            except:
+                                continue
+
                 st.write(f"**Human Comment:** {metadata.get('human_comment', 'N/A')}")
-                st.write(f"**Verdict:** {metadata.get('verdict', 'N/A')}")
+                st.write(f"**Initial (AI) Verdict:** :blue[{ai_verdict}]")
+                st.write(f"**Final (Human) Verdict:** :green[{metadata.get('verdict', 'N/A')}]")
                 st.write(f"**Tenant:** {metadata.get('account_short_name', 'N/A')}")
                 
             # Show Trace observations if any

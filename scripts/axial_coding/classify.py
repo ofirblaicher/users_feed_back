@@ -309,6 +309,7 @@ class ThemeClassifier:
         compact_data = []
         for r in results_data:
             compact_data.append({
+                "alert_name": r.get("alert_name") or "Unknown",
                 "theme": r.get("theme"),
                 "insight": r.get("trend_insight"),
                 "tenant": r.get("tenant") or "Unknown"
@@ -454,11 +455,15 @@ def main():
                     if line.strip():
                         all_results.append(json.loads(line))
         
-        # Add tenant info for analysis
+        # Add tenant and alert name info for analysis
         tenant_map = {item['alert_id']: item.get('metadata', {}).get('account_short_name', 'Unknown') 
                      for item in feedback_data}
+        alert_name_map = {item['alert_id']: item.get('metadata', {}).get('alert_name', 'Unknown') 
+                         for item in feedback_data}
+        
         for res in all_results:
             res['tenant'] = tenant_map.get(res['alert_id'], 'Unknown')
+            res['alert_name'] = alert_name_map.get(res['alert_id'], 'Unknown')
             
         classifier.generate_global_trends(all_results)
     

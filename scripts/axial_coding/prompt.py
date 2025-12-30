@@ -246,16 +246,17 @@ def format_user_prompt(
 
 GLOBAL_TRENDS_PROMPT = """You are a senior security operations director. You have been provided with a collection of feedback items from security analysts regarding AI-generated alert verdicts.
 
-Your task is to analyze these individual insights and themes to identify the top 5 overarching security trends or systemic issues occurring across the organization.
+Your task is to analyze these individual insights and themes to identify the top 5 overarching security trends or systemic issues, focusing specifically on recurring patterns across different "Alert Names".
 
 ## Input Data
-You will receive a list of classified alerts, including their themes, human comments, and individual trend insights.
+You will receive a list of classified alerts, including their alert_name, theme, human comment, and individual trend insights.
 
 ## Analysis Requirements
-1.  **Identify Patterns**: Look for recurring software, user groups, or behaviors that are frequently misclassified.
-2.  **Tenant-Specific vs. Global**: Note if certain tenants are experiencing specific types of issues more than others.
-3.  **Root Cause Hypothesis**: For each trend, suggest why the AI might be struggling (e.g., "Lack of visibility into IT admin maintenance windows in the Europe region").
-4.  **Strategic Recommendations**: Provide actionable advice for improving the AI's accuracy based on these trends.
+1.  **Analyze Alert Names**: Identify which specific types of alerts (by name) are most frequently misclassified or causing issues.
+2.  **Identify Patterns**: Look for recurring software, user groups, or behaviors associated with these alert names.
+3.  **Tenant-Specific vs. Global**: Note if certain alert names are problematic only in specific tenants or across the board.
+4.  **Root Cause Hypothesis**: For each trend, suggest why the AI might be struggling with that specific alert type (e.g., "AI over-prioritizes credential access alerts in the dev tenant").
+5.  **Strategic Recommendations**: Provide actionable advice for improving the AI's accuracy for these specific alert names.
 
 ## Output Format
 Respond with valid JSON only:
@@ -263,14 +264,14 @@ Respond with valid JSON only:
 {
   "trends": [
     {
-      "title": "<Short Trend Name>",
-      "description": "<Detailed explanation of the trend>",
+      "title": "<Short Trend Name, preferably including the Alert Name(s) involved>",
+      "description": "<Detailed explanation of the trend related to specific alert types>",
       "affected_tenants": ["<Tenant A>", "<Tenant B>"],
       "severity": "<HIGH|MEDIUM|LOW>",
-      "recommendation": "<What should be done to fix this systemic issue?>"
+      "recommendation": "<What should be done to fix this systemic issue for these alerts?>"
     }
   ],
-  "summary": "<A 2-3 sentence executive summary of the overall state of the AI's performance>"
+  "summary": "<A 2-3 sentence executive summary of the overall state of the AI's performance, highlighting the most problematic alert names>"
 }
 ```
 """

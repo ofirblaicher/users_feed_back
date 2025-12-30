@@ -45,6 +45,12 @@ if feedback_data:
     
     if results_data:
         df_results = pd.DataFrame(results_data)
+        
+        # Merge with tenant info from feedback_data
+        tenant_map = {item['alert_id']: item.get('metadata', {}).get('account_short_name', 'Unknown') 
+                     for item in feedback_data}
+        df_results['tenant'] = df_results['alert_id'].map(tenant_map)
+        
         st.sidebar.metric("Classified Alerts", len(df_results))
         
         # Main Dashboard Layout
@@ -65,9 +71,19 @@ if feedback_data:
         st.divider()
         st.subheader("Detailed Classification Results")
         
-        # Filter by Theme
-        selected_theme = st.multiselect("Filter by Theme", options=df_results['theme'].unique())
-        filtered_df = df_results if not selected_theme else df_results[df_results['theme'].isin(selected_theme)]
+        # Filters
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            selected_theme = st.multiselect("Filter by Theme", options=sorted(df_results['theme'].unique()))
+        with filter_col2:
+            selected_tenant = st.multiselect("Filter by Tenant", options=sorted(df_results['tenant'].unique()))
+        
+        # Apply Filters
+        filtered_df = df_results
+        if selected_theme:
+            filtered_df = filtered_df[filtered_df['theme'].isin(selected_theme)]
+        if selected_tenant:
+            filtered_df = filtered_df[filtered_df['tenant'].isin(selected_tenant)]
         
         # Export Functionality
         csv = filtered_df.to_csv(index=False).encode('utf-8')
@@ -78,7 +94,7 @@ if feedback_data:
             mime="text/csv",
         )
         
-        st.dataframe(filtered_df[['alert_id', 'theme', 'confidence', 'reasoning']], use_container_width=True)
+        st.dataframe(filtered_df[['alert_id', 'tenant', 'theme', 'confidence', 'reasoning']], use_container_width=True)
         
         # Drill Down
         st.divider()

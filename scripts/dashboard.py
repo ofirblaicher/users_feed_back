@@ -116,6 +116,8 @@ if feedback_data:
                 st.write(f"**Reasoning:** {res_item['reasoning']}")
                 if res_item.get('missing_context'):
                     st.warning(f"**Missing Context:** {res_item['missing_context']}")
+                if res_item.get('trend_insight'):
+                    st.success(f"**📈 Trend Insight:** {res_item['trend_insight']}")
             
             with det_col2:
                 st.success("**Human Input & Context**")

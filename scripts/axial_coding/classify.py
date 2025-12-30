@@ -214,6 +214,7 @@ class ThemeClassifier:
                 "confidence": result_data.get("confidence", "UNKNOWN"),
                 "reasoning": result_data.get("reasoning", ""),
                 "missing_context": result_data.get("missing_context", ""),
+                "trend_insight": result_data.get("trend_insight", ""),
                 "processed_at": datetime.utcnow().isoformat() + "Z",
             }
             

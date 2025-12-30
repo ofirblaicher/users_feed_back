@@ -151,7 +151,8 @@ Respond with valid JSON only:
   "theme": "<THEME_NAME>",
   "confidence": "<HIGH|MEDIUM|LOW>",
   "reasoning": "<Your reasoning explaining why this feedback belongs to this theme>",
-  "missing_context": "<What organizational/system context was the AI missing?>"
+  "missing_context": "<What organizational/system context was the AI missing?>",
+  "trend_insight": "<Any recurring patterns or trend insights derived from this alert and its context (e.g., 'Increasing frequency of sysadmin-related false positives in this tenant')>"
 }
 ```
 

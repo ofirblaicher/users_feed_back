@@ -6,29 +6,6 @@ import plotly.express as px
 
 st.set_page_config(page_title="Alert Triage Analysis Dashboard", layout="wide")
 
-st.title("🛡️ AI-Powered Alert Triage Analysis")
-st.markdown("### Visualization of Axial Coding & Theme Classification")
-
-# Global Trends Section
-if global_trends_data:
-    with st.expander("🌐 **Global Security Trends & Strategic Insights**", expanded=True):
-        st.info(f"**Executive Summary:** {global_trends_data['summary']}")
-        
-        # Display trends in a grid
-        num_trends = len(global_trends_data['trends'])
-        if num_trends > 0:
-            cols = st.columns(min(num_trends, 3))
-            for i, trend in enumerate(global_trends_data['trends']):
-                with cols[i % 3]:
-                    severity_color = {"HIGH": "red", "MEDIUM": "orange", "LOW": "blue"}.get(trend['severity'].upper(), "gray")
-                    st.markdown(f"#### :{severity_color}[{trend['title']}]")
-                    st.write(trend['description'])
-                    if trend.get('affected_tenants'):
-                        st.caption(f"**Affected:** {', '.join(trend['affected_tenants'])}")
-                    st.success(f"**💡 Rec:** {trend['recommendation']}")
-else:
-    st.info("💡 Run individual classification with `--global-trends` to see strategic trend analysis here.")
-
 # Paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 AXIAL_CODING_FILE = PROJECT_ROOT / "data" / "axial_coding.json"
@@ -61,6 +38,29 @@ def load_data():
     return feedback_data, results, global_trends
 
 feedback_data, results_data, global_trends_data = load_data()
+
+st.title("🛡️ AI-Powered Alert Triage Analysis")
+st.markdown("### Visualization of Axial Coding & Theme Classification")
+
+# Global Trends Section
+if global_trends_data:
+    with st.expander("🌐 **Global Security Trends & Strategic Insights**", expanded=True):
+        st.info(f"**Executive Summary:** {global_trends_data['summary']}")
+        
+        # Display trends in a grid
+        num_trends = len(global_trends_data['trends'])
+        if num_trends > 0:
+            cols = st.columns(min(num_trends, 3))
+            for i, trend in enumerate(global_trends_data['trends']):
+                with cols[i % 3]:
+                    severity_color = {"HIGH": "red", "MEDIUM": "orange", "LOW": "blue"}.get(trend['severity'].upper(), "gray")
+                    st.markdown(f"#### :{severity_color}[{trend['title']}]")
+                    st.write(trend['description'])
+                    if trend.get('affected_tenants'):
+                        st.caption(f"**Affected:** {', '.join(trend['affected_tenants'])}")
+                    st.success(f"**💡 Rec:** {trend['recommendation']}")
+else:
+    st.info("💡 Run individual classification with `--global-trends` to see strategic trend analysis here.")
 
 if feedback_data:
     # Sidebar stats

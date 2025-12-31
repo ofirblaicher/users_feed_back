@@ -46,6 +46,11 @@ if feedback_data:
     if results_data:
         df_results = pd.DataFrame(results_data)
         
+        # Merge with verdict info from feedback_data
+        verdict_map = {item['alert_id']: item.get('metadata', {}).get('verdict', 'N/A') 
+                      for item in feedback_data}
+        df_results['verdict'] = df_results['alert_id'].map(verdict_map)
+        
         st.sidebar.metric("Classified Alerts", len(df_results))
         
         # Main Dashboard Layout
@@ -83,7 +88,7 @@ if feedback_data:
             mime="text/csv",
         )
         
-        st.dataframe(filtered_df[['alert_id', 'theme', 'confidence', 'reasoning']], use_container_width=True)
+        st.dataframe(filtered_df[['alert_id', 'verdict', 'theme', 'confidence', 'reasoning']], use_container_width=True)
         
         # Drill Down
         st.divider()

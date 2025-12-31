@@ -51,6 +51,11 @@ if feedback_data:
                       for item in feedback_data}
         df_results['verdict'] = df_results['alert_id'].map(verdict_map)
         
+        # Merge with triage confirmation info
+        conf_map = {item['alert_id']: item.get('metadata', {}).get('triage_confirmation', 'N/A') 
+                   for item in feedback_data}
+        df_results['confirmation'] = df_results['alert_id'].map(conf_map)
+        
         st.sidebar.metric("Classified Alerts", len(df_results))
         
         # Main Dashboard Layout
@@ -88,7 +93,7 @@ if feedback_data:
             mime="text/csv",
         )
         
-        st.dataframe(filtered_df[['alert_id', 'verdict', 'theme', 'confidence', 'reasoning']], use_container_width=True)
+        st.dataframe(filtered_df[['alert_id', 'verdict', 'confirmation', 'theme', 'confidence', 'reasoning']], use_container_width=True)
         
         # Drill Down
         st.divider()

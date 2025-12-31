@@ -56,6 +56,11 @@ if feedback_data:
                    for item in feedback_data}
         df_results['confirmation'] = df_results['alert_id'].map(conf_map)
         
+        # Merge with human comment info
+        comment_map = {item['alert_id']: item.get('metadata', {}).get('human_comment', 'N/A') 
+                      for item in feedback_data}
+        df_results['comment'] = df_results['alert_id'].map(comment_map)
+        
         st.sidebar.metric("Classified Alerts", len(df_results))
         
         # Main Dashboard Layout
@@ -99,7 +104,7 @@ if feedback_data:
             mime="text/csv",
         )
         
-        st.dataframe(filtered_df[['alert_id', 'verdict', 'confirmation', 'theme', 'confidence', 'reasoning']], use_container_width=True)
+        st.dataframe(filtered_df[['alert_id', 'verdict', 'confirmation', 'theme', 'comment', 'confidence', 'reasoning']], use_container_width=True)
         
         # Drill Down
         st.divider()

@@ -77,12 +77,18 @@ if feedback_data:
         st.subheader("Detailed Classification Results")
         
         # Filters
-        selected_theme = st.multiselect("Filter by Theme", options=sorted(df_results['theme'].unique()))
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            selected_theme = st.multiselect("Filter by Theme", options=sorted(df_results['theme'].unique()))
+        with filter_col2:
+            selected_conf = st.multiselect("Filter by Confirmation", options=sorted(df_results['confirmation'].unique()))
         
         # Apply Filters
         filtered_df = df_results
         if selected_theme:
             filtered_df = filtered_df[filtered_df['theme'].isin(selected_theme)]
+        if selected_conf:
+            filtered_df = filtered_df[filtered_df['confirmation'].isin(selected_conf)]
         
         # Export Functionality
         csv = filtered_df.to_csv(index=False).encode('utf-8')

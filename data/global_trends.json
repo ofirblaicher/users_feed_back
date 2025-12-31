@@ -1,0 +1,50 @@
+{
+  "trends": [
+    {
+      "title": "False Positives for Authorized Internal Activities (SHRSS)",
+      "description": "The AI frequently generates false positive alerts for legitimate activities performed by internal offensive security teams, red teams, or specialized administrators using custom tools within the 'SHRSS' tenant. This affects alerts like 'NGAV', 'Attacker Methodology', and 'Suspicious Activity', consistently leading to 'True Positive - Benign' verdicts by human analysts. The systemic issue is a lack of contextual awareness or proper whitelisting for authorized internal security operations and administrative functions.",
+      "affected_tenants": [
+        "SHRSS"
+      ],
+      "severity": "HIGH",
+      "recommendation": "Implement robust whitelisting mechanisms for known security tools, user groups, and IP ranges associated with authorized internal activities. Develop and integrate behavioral profiles for specialized roles (e.g., system administrators, red team members) to differentiate legitimate administrative actions from malicious ones. Integrate red team/offsec schedules and activity patterns into the AI's contextual awareness."
+    },
+    {
+      "title": "AI Misclassification of Excel Macro Behavior (SHRSS)",
+      "description": "Within the 'SHRSS' tenant, the AI frequently generates 'Malicious Document' alerts for the mere presence of Excel macros, which are often classified as 'True Positive - Benign' after human review. This indicates the AI's inability to differentiate between benign and malicious macro execution without sufficient behavioral context, leading to alert fatigue and unnecessary manual investigations.",
+      "affected_tenants": [
+        "SHRSS"
+      ],
+      "severity": "MEDIUM",
+      "recommendation": "Enhance the AI's behavioral analysis capabilities for script execution within documents. Train the AI on a larger and more nuanced dataset of benign versus malicious macro execution patterns, focusing on the actions performed by the macros rather than just their presence. Incorporate contextual data such as user reputation or typical document sources."
+    },
+    {
+      "title": "Discrepancy in Policy for Contained Malicious Activities (sec-prod-ai-soc)",
+      "description": "In the 'sec-prod-ai-soc' tenant, the AI does not consistently align with organizational policy regarding the classification of contained malicious activities. The AI often misprioritizes or incorrectly categorizes these events, whereas human analysts consider the *attempt* of a malicious activity, even if contained, as a 'True Positive - Malicious' event for reporting and policy adherence. This creates discrepancies in how 'NGAV' alerts for contained threats are handled.",
+      "affected_tenants": [
+        "sec-prod-ai-soc"
+      ],
+      "severity": "MEDIUM",
+      "recommendation": "Retrain the AI model with explicit examples and rules that classify any confirmed malicious attempt, even if contained, as 'True Positive - Malicious' to align with organizational security policies and reporting requirements. Ensure the AI understands the critical distinction between 'contained' and 'benign'."
+    },
+    {
+      "title": "Need for Robust Verdict Management in AI-Assisted Workflows (sec-prod-ai-soc)",
+      "description": "Analysts in the 'sec-prod-ai-soc' tenant frequently modify and potentially revert AI-generated verdicts for alerts like 'A process has written a suspicious file to disk' and 'Attacker Methodology'. This highlights a systemic operational need for robust verdict management features, including clear undo/redo capabilities, versioning, and audit trails within the security operations platform. While not a direct AI accuracy issue, it impacts workflow efficiency and the integrity of feedback for AI learning.",
+      "affected_tenants": [
+        "sec-prod-ai-soc"
+      ],
+      "severity": "MEDIUM",
+      "recommendation": "Develop and implement comprehensive verdict management features in the SOAR/SIEM platform, including clear audit trails, versioning for verdict changes, and an intuitive UI for modifying and reverting AI classifications. Ensure these modifications are captured as structured feedback for future AI model training."
+    },
+    {
+      "title": "Procedural Gaps in AI Learning from Confirmed Malicious Events (sec-prod-ai-soc)",
+      "description": "For 'NGAV' alerts in the 'sec-prod-ai-soc' tenant, a 'Declined' confirmation status for a human-verified 'True Positive - Malicious' verdict after containment indicates a potential procedural or data pipeline inefficiency. If the AI is meant to learn from human verdicts, this 'Declined' status for a confirmed malicious event could lead to misinterpretation by the AI, hindering its ability to accurately learn from positive examples.",
+      "affected_tenants": [
+        "sec-prod-ai-soc"
+      ],
+      "severity": "LOW",
+      "recommendation": "Investigate the workflow and data points associated with the 'Declined' confirmation status for confirmed 'True Positive - Malicious' verdicts. Clarify the process to ensure that even contained or 'Declined' malicious activities properly feed back into the AI's learning loop as positive examples, avoiding misinterpretation of the 'Declined' status and enabling continuous model improvement."
+    }
+  ],
+  "summary": "The AI's performance demonstrates significant challenges, primarily in differentiating authorized internal security and administrative activities from malicious ones within the SHRSS tenant, leading to a high volume of false positives for NGAV, Attacker Methodology, and Suspicious Activity alerts. Additionally, the AI struggles with accurately classifying Excel macro behavior, often flagging benign instances. Systemic issues also exist in the 'sec-prod-ai-soc' tenant regarding policy alignment for contained threats and the robust integration of human verdict feedback into AI learning loops."
+}
